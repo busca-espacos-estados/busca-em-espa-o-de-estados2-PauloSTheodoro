@@ -26,18 +26,60 @@ class State:
 
     def neighbors(self) -> List["State"]:
         """Retorna os estados filhos válidos a partir deste estado."""
-        # TODO: implemente a geração de estados filhos
-        raise NotImplementedError
+
+        filhos = []
+        vazio = self.blank_index
+        linha, coluna = divmod(vazio, 3)
+
+        movimentos = [
+            ("UP", -1, 0),
+            ("DOWN", 1, 0),
+            ("LEFT", 0, -1),
+            ("RIGHT", 0, 1),
+        ]
+
+        for acao, desloc_linha, desloc_coluna in movimentos:
+            nova_linha = linha + desloc_linha
+            nova_coluna = coluna + desloc_coluna
+
+            if 0 <= nova_linha < 3 and 0 <= nova_coluna < 3:
+                novo_indice = nova_linha * 3 + nova_coluna
+
+                novas_pecas = list(self.tiles)
+                novas_pecas[vazio], novas_pecas[novo_indice] = novas_pecas[novo_indice], novas_pecas[vazio]
+
+                filho = State(
+                    tiles=tuple(novas_pecas),
+                    parent=self,
+                    action=acao,
+                    cost=self.cost + 1
+                )
+
+                filhos.append(filho)
+
+        return filhos
 
     def path(self) -> List["State"]:
         """Retorna a sequência de estados do estado inicial até este."""
-        # TODO: implemente a reconstrução do caminho usando self.parent
-        raise NotImplementedError
+
+        caminho = []
+        atual = self
+
+        while atual is not None:
+            caminho.append(atual)
+            atual = atual.parent
+
+        caminho.reverse()
+        return caminho
 
     def actions(self) -> List[str]:
         """Retorna a sequência de ações do estado inicial até este."""
-        # TODO: implemente usando path()
-        raise NotImplementedError
+
+        return [
+            estado.action
+            for estado in self.path()
+            if estado.action is not None
+        ]
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, State) and self.tiles == other.tiles
